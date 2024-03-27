@@ -12,13 +12,4 @@
   (dune
    (>= 2.2))
   lwt
-  tezos-p2p
-  tezos-base
-  (tezos-rpc
-   (= 17.3))
-  (tezos-rpc-http-server
-   (= 17.3))
-  (tezos-rpc-http-client-unix
-   (= 17.3))
-  (tezos-client-base-unix
-   (= 17.3))))
+  octez-libs))

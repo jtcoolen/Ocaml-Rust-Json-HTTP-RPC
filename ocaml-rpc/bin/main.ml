@@ -14,7 +14,7 @@ module Events = struct
 
   let event_is_ready =
     Tezos_base.TzPervasives.Internal_event.Simple.declare_2 ~section
-      ~name:"is_ready" ~msg:"the EVM node is listening to {addr}:{port}"
+      ~name:"is_ready" ~msg:"the RPC server is listening to {addr}:{port}"
       ~level:Notice
       ("addr", Data_encoding.string)
       ("port", Data_encoding.uint16)
@@ -50,8 +50,8 @@ let start_server
   let host = Ipaddr.V6.to_string p2p_addr in
   let node = `TCP (`Port rpc_port) in
   let acl = RPC_server.Acl.allow_all in
-  let cors : RPC_server.cors =
-    { allowed_headers = cors_headers; allowed_origins = cors_origins }
+  let cors =
+    Resto_cohttp.Cors.{ allowed_headers = cors_headers; allowed_origins = cors_origins }
   in
 
   let directory = Services.directory in
@@ -82,6 +82,8 @@ let main =
       }
   in
   let open Tezos_base.TzPervasives.Lwt_result_syntax in
+  (* Activate logging system. *)
+  let*! _ = Tezos_base_unix.Internal_event_unix.init () in
   let* _ = start_server config in
   Tezos_base.TzPervasives.Lwt_utils.never_ending ()
 
