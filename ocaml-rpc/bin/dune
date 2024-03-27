@@ -6,5 +6,4 @@
   tezos-rpc
   tezos-rpc-http
   tezos-rpc-http-server
-  tezos-rpc-http-client-unix
-))
+  tezos-rpc-http-client-unix))
