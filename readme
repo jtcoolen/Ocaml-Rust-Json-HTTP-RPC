@@ -4,10 +4,7 @@ Mar 27 14:25:50.228: the RPC server is listening to ::ffff:127.0.0.1:8000
 
 
 run rust client:
-> cargo run                                                                                                           ~/rust-ocaml-json-http-rpc/rust
-   Compiling rust v0.1.0 (/Users/julien/rust-ocaml-json-http-rpc/rust)
-    Finished dev [unoptimized + debuginfo] target(s) in 1.21s
-     Running `target/debug/rust`
+$ cargo run --bin bin_client
 version: "v1.0/Unix/ocamlc.4.14.1"
 
 
