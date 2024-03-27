@@ -23,7 +23,6 @@ let main () =
   let open Tezos_base.TzPervasives.Lwt_result_syntax in
   (* Activate logging system. *)
   let*! _ = Tezos_base_unix.Internal_event_unix.init () in
-  let _ = Printf.eprintf "Version %d\n" 2 in
   let* v = version ~rpc_addr:"127.0.0.1" ~rpc_port:3000 in
   let _ = Printf.eprintf "Version %s\n" v in
   return_unit
