@@ -54,11 +54,9 @@ let start_server
     Resto_cohttp.Cors.
       { allowed_headers = cors_headers; allowed_origins = cors_origins }
   in
-
-  let directory = Services.directory in
   let server =
     RPC_server.init_server ~acl ~cors
-      ~media_types:Tezos_rpc_http.Media_type.all_media_types directory
+      ~media_types:Tezos_rpc_http.Media_type.all_media_types Services.directory
   in
   Lwt.catch
     (fun () ->
@@ -67,7 +65,6 @@ let start_server
           ~callback:(RPC_server.resto_callback server)
           node
       in
-
       let*! () = Events.is_ready ~rpc_addr ~rpc_port in
       return server)
     (fun _ -> return server)
