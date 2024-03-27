@@ -51,7 +51,8 @@ let start_server
   let node = `TCP (`Port rpc_port) in
   let acl = RPC_server.Acl.allow_all in
   let cors =
-    Resto_cohttp.Cors.{ allowed_headers = cors_headers; allowed_origins = cors_origins }
+    Resto_cohttp.Cors.
+      { allowed_headers = cors_headers; allowed_origins = cors_origins }
   in
 
   let directory = Services.directory in
