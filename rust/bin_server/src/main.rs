@@ -1,26 +1,87 @@
 #![deny(warnings)]
 
-use std::net::SocketAddr;
-
 use bytes::Bytes;
-use http_body_util::Full;
+use futures_util::TryStreamExt;
+use http_body_util::combinators::BoxBody;
+use http_body_util::{BodyExt, Full, StreamBody};
+use hyper::body::Frame;
 use hyper::server::conn::http1;
 use hyper::service::service_fn;
-use hyper::{header, Request, Response};
-use tokio::net::TcpListener;
-
+use hyper::{header, Method, Request, Response, StatusCode};
 use hyper_util::rt::{TokioIo, TokioTimer};
+use std::net::SocketAddr;
+use tokio::fs::File;
+use tokio::net::TcpListener;
+use tokio_util::io::ReaderStream;
+
+static NOTFOUND: &[u8] = b"Not Found";
+
+/// HTTP status code 404
+fn not_found() -> Response<BoxBody<Bytes, std::io::Error>> {
+    Response::builder()
+        .status(StatusCode::NOT_FOUND)
+        .body(Full::new(NOTFOUND.into()).map_err(|e| match e {}).boxed())
+        .unwrap()
+}
+
+async fn simple_file_send(
+    filename: &str,
+) -> hyper::Result<Response<BoxBody<Bytes, std::io::Error>>> {
+    // Open file for reading
+    println!("simple_file_send");
+    let file = File::open(filename).await;
+    if file.is_err() {
+        eprintln!("ERROR: Unable to open file.");
+        println!("ERROR: Unable to open file.");
+        return Ok(not_found());
+    }
+
+    let file: File = file.unwrap();
+
+    // Wrap to a tokio_util::io::ReaderStream
+    let reader_stream = ReaderStream::new(file);
+
+    // Convert to http_body_util::BoxBody
+    let stream_body =
+        StreamBody::new(reader_stream.map_ok(Frame::data)).map_frame(|f: Frame<Bytes>| {
+            let data: Bytes = f.into_data().unwrap();
+            let data = std::str::from_utf8(&data).unwrap();
+            Frame::data(serde_json::to_string(&data).unwrap().into())
+        });
+    let boxed_body = stream_body.boxed();
+
+    // Send response
+    let response: Response<BoxBody<Bytes, std::io::Error>> = Response::builder()
+        .status(StatusCode::OK)
+        .body(boxed_body)
+        .unwrap();
+    println!("end simple_file_send");
+    Ok(response)
+}
 
 // An async function that consumes a request, does nothing with it and returns a
 // response.
 async fn hello(
-    _: Request<impl hyper::body::Body>,
-) -> Result<Response<Full<Bytes>>, hyper::http::Error> {
-    let data = "foobar";
-    let json = serde_json::to_string(&data).unwrap();
-    Response::builder()
-        .header(header::CONTENT_TYPE, "application/json")
-        .body(Full::new(json.into()))
+    req: Request<impl hyper::body::Body>,
+) -> hyper::Result<Response<BoxBody<Bytes, std::io::Error>>> {
+    match (req.method(), req.uri().path()) {
+        (&Method::GET, "/version") => {
+            let data = "foobar";
+            println!("version");
+            let json = serde_json::to_string(&data).unwrap();
+            let response = Response::builder()
+                .header(header::CONTENT_TYPE, "application/json")
+                .body(Full::new(json.into()).map_err(|e| match e {}).boxed())
+                .unwrap();
+            Ok(response)
+        }
+        (&Method::GET, "/stream") => {
+            println!("/stream");
+            // Test what happens when file cannot be be found
+            simple_file_send("big.txt").await
+        }
+        _ => Ok(not_found()),
+    }
 }
 
 #[tokio::main]

@@ -12,3 +12,6 @@ serde = {workspace = true }
 bytes = {workspace = true }
 serde_json = {workspace = true }
 serde_derive = {workspace = true }
+tokio-util = "0.7.10"
+tokio-stream = "0.1.15"
+futures-util = "0.3.30"
