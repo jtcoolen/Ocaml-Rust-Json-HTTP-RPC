@@ -7,7 +7,8 @@
   octez-libs.base.unix
   octez-libs.stdlib-unix
   octez-libs.rpc-http
-  octez-libs.rpc-http-server))
+  octez-libs.rpc-http-server
+  lwt-watcher))
 
 (executable
  (public_name client)

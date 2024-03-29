@@ -36,9 +36,34 @@ module Services = struct
     Tezos_rpc.Directory.register0 dir version_service (fun () () ->
         Lwt.return_ok client_version)
 
+  let str_watcher_service =
+    Tezos_rpc.Service.get_service ~description:"Watch for new str"
+      ~query:Tezos_rpc.Query.empty ~output:Data_encoding.string
+      Tezos_rpc.Path.(root / "stream")
+
+  let create_str_watcher_service () =
+    let open Tezos_base.TzPervasives.Lwt_syntax in
+    (* generate the next asynchronous event *)
+    let input = Lwt_watcher.create_input () in
+    let _stream, stopper = Lwt_watcher.create_stream input in
+    let shutdown () = Lwt_watcher.shutdown stopper in
+    let c = ref 0 in
+    let next () =
+      if !c < 10 then (
+        c := !c + 1;
+        return_some "hello")
+      else return_none (* Lwt_stream.get stream *)
+    in
+    Tezos_rpc.Answer.return_stream { next; shutdown }
+
+  let register_str_watcher_service dir =
+    Tezos_rpc.Directory.gen_register0 dir str_watcher_service (fun () ->
+        create_str_watcher_service)
+
   let directory =
     let dir = Tezos_rpc.Directory.empty in
     let dir = version dir in
+    let dir = register_str_watcher_service dir in
     dir
 end
 
