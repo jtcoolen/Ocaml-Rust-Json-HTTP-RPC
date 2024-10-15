@@ -1,3 +1,8 @@
+
+The RPC crate allows to create RPC servers and clients compatible with the ones from the Resto library (https://gitlab.com/nomadic-labs/resto) in OCaml, correctly handling streamed RPCs.
+
+
+
 run ocaml server:
 $ TEZOS_LOGS="* -> debug"; dune exec bin/main.exe
 Mar 27 14:25:50.228: the RPC server is listening to ::ffff:127.0.0.1:8000
